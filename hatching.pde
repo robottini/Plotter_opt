@@ -7,6 +7,7 @@
  * @param distContour - Distanza delle linee di hatching dal bordo della forma
  */
 void intersection(RShape shape, int ic, float distContour) {
+  hatchFillMode = HATCH_FILL_PARALLEL;
     RPoint[] ps = null; // Variabile dichiarata ma non usata in questo snippet
 
   // Ottiene i punti che formano il rettangolo di delimitazione della forma

@@ -38,24 +38,40 @@ void ridimPaper() {
 void creaLista() {
   RCommand.setSegmentator(RCommand.ADAPTATIVE);
   for (int i=0; i<paperFormList.size(); i++) {
+    int typeC = paperFormList.get(i).type;
+    float minLen = (typeC == 1 && hatchFillMode == HATCH_FILL_PARALLEL) ? 1.0 : 0.1;
+    float epsDup = 0.01;
     // turn the RShape into an RPolygon
     RPolygon sPolygon = paperFormList.get(i).sh.toPolygon(); //prendi solo il contorno fatto di punti
     if (sPolygon.contours != null) {
       for (int k=0; k<sPolygon.contours.length; k++) {
-        RPoint startS=sPolygon.contours[k].points[0]; //prendi il primo punto della shape e consideralo il primo vertice della prima riga
-        RPoint endS=sPolygon.contours[k].points[0];
+        RPoint[] pts = sPolygon.contours[k].points;
+        if (pts == null || pts.length < 2) continue;
+
+        RPoint first = pts[0];
+        RPoint startS = first; //prendi il primo punto della shape e consideralo il primo vertice della prima riga
+        RPoint endS = first;
         //if (sPolygon.contours[0].points.length == 3) { //se uguale a 3 è una semplice linea
         //  endS=sPolygon.contours[0].points[1]; //metti alla fine il secondo punto del contorno
         //  lineaList.add(new Linea(startS, endS, paperFormList.get(i).ic, paperFormList.get(i).type)); //aggiungi un record alla lista di linee
         //} else  //la forma è complessa e ci sono molti punti
         //{
-        for (int j = 1; j < sPolygon.contours[k].points.length; j++)
+        for (int j = 1; j < pts.length; j++)
         {
-          endS = sPolygon.contours[k].points[j];   //prendi il finale della prossima riga
-          lineaList.add(new Linea(startS, endS, paperFormList.get(i).ic, paperFormList.get(i).type));
+          endS = pts[j];   //prendi il finale della prossima riga
+          float lenSeg = dist(startS, endS);
+          if (lenSeg >= minLen) {
+            lineaList.add(new Linea(startS, endS, paperFormList.get(i).ic, typeC));
+          }
           startS=endS; //la fine della precedente riga è l'inizio della nuova riga
         }
-        lineaList.add(new Linea(endS, sPolygon.contours[k].points[0], paperFormList.get(i).ic, paperFormList.get(i).type)); //chiudi dall'ultimo punto della shape al primo
+        boolean shouldClose = (typeC == 0) || (typeC == 1 && hatchFillMode != HATCH_FILL_PARALLEL);
+        if (shouldClose && !samePoint(endS, first, epsDup)) {
+          float lenClose = dist(endS, first);
+          if (lenClose >= minLen) {
+            lineaList.add(new Linea(endS, first, paperFormList.get(i).ic, typeC)); //chiudi dall'ultimo punto della shape al primo
+          }
+        }
         // }
       }
     }
@@ -117,7 +133,8 @@ void  orderList() {
   //////////rimuovi le linee duplicate
   for (int i=1; i<ordLineaList.size(); i++) {
     Linea curr=ordLineaList.get(i);
-    if (dist(curr.start, curr.end) < 0.1)
+    float len = dist(curr.start, curr.end);
+    if ((curr.type == 1 && hatchFillMode == HATCH_FILL_PARALLEL && len < 1.0) || (len < 0.1))
       ordLineaList.remove(i--);
   }
 
@@ -133,21 +150,16 @@ void  orderList() {
         continue;
       }
 
-      // Controllo linee duplicate esatte
-      boolean confrontoEsatto = ((prev.start.x == curr.start.x) &&
-        (prev.start.y == curr.start.y) &&
-        (prev.end.x == curr.end.x) &&
-        (prev.end.y == curr.end.y) &&
-        (prev.ic == curr.ic) &&
-        (prev.type == curr.type));
+      float epsDup = 0.01;
+      boolean sameType = (prev.ic == curr.ic) && (prev.type == curr.type);
 
-      // Controllo linee sovrapposte inverse
-      boolean confrontoInverso = ((prev.start.x == curr.end.x) &&
-        (prev.start.y == curr.end.y) &&
-        (prev.end.x == curr.start.x) &&
-        (prev.end.y == curr.start.y) &&
-        (prev.ic == curr.ic) &&
-        (prev.type == curr.type));
+      boolean confrontoEsatto = sameType &&
+        samePoint(prev.start, curr.start, epsDup) &&
+        samePoint(prev.end, curr.end, epsDup);
+
+      boolean confrontoInverso = sameType &&
+        samePoint(prev.start, curr.end, epsDup) &&
+        samePoint(prev.end, curr.start, epsDup);
 
       if (confrontoEsatto || confrontoInverso) {
         ordLineaList.remove(j--);
@@ -285,4 +297,11 @@ float dist(RPoint start, RPoint end) {
 
 float distV(PVector start, PVector end) {
   return sqrt((end.x-start.x)*(end.x-start.x)+(end.y-start.y)*(end.y-start.y));
+}
+
+boolean samePoint(RPoint a, RPoint b, float eps) {
+  if (a == null || b == null) return false;
+  float dx = a.x - b.x;
+  float dy = a.y - b.y;
+  return (dx*dx + dy*dy) <= (eps*eps);
 }

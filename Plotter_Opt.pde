@@ -22,6 +22,9 @@ float step=1.2;
 float stepDisplay; float stepSVG; //provarapp
 boolean mixColors=false; //mescola i colori ogni tanto
 boolean hatching=true; //ottieni i riempimenti a linee parallele
+final int HATCH_FILL_PARALLEL = 0;
+final int HATCH_FILL_CONCENTRIC = 1;
+int hatchFillMode = HATCH_FILL_PARALLEL;
 boolean endStop=false;
 //boolean border=true; //ottieni i bordi dell'immagine
 

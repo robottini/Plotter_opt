@@ -9,6 +9,8 @@ Software scritto in Processing (Java) che utilizza la libreria Geomerative per g
 - Crea un file G-code da inviare al plotter per dipingere l'immagine.
 - Ottimizza la direzione delle righe di hatching per ridurre gli spostamenti a vuoto.
 - Include una vista interattiva per ispezionare forme e righe di hatching a fine elaborazione (tasti 1/2/3/4/9).
+- Riduce i duplicati reali nelle linee generate (include anche start/end invertiti).
+- Per hatching parallelo evita la chiusura delle linee e scarta segmenti molto corti (<1mm).
 
 ## Librerie
 
