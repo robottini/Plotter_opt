@@ -56,7 +56,18 @@ void creaGCODE() {
     // Controlla lunghezza linea totale. Se maggiore maxDist spezza la linea
     PVector in=new PVector(currLinea.start.x, currLinea.start.y);
     PVector fin = new PVector(currLinea.end.x, currLinea.end.y);
-    float dimLinea=dist(currLinea.start, currLinea.end);
+
+    if (typeLine==1 && distV(pos, fin) < distV(pos, in)) {
+      RPoint tmp = currLinea.start;
+      currLinea.start = currLinea.end;
+      currLinea.end = tmp;
+
+      PVector tmpV = in;
+      in = fin;
+      fin = tmpV;
+    }
+
+    float dimLinea=distV(in, fin);
     float totDist=currDist + dimLinea; //lunghezza totale della linea
     buf = ";Tot Dist:"+ nf(totDist, 0, 1);
     OUTPUT.println(buf);

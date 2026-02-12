@@ -383,10 +383,14 @@ void setup() {
 
 
   println("End of elaboration");
+  interactiveViewerInit();
 }
 
 
 void draw() {
+  if (interactiveViewerEnabled) {
+    interactiveViewerDraw();
+  }
 }
 
 
